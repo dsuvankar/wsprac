@@ -7,12 +7,14 @@ function App() {
   const [scores, setScores] = useState({});
   const [allScores, setAllScores] = useState([]);
   const [onlineCount, setOnlineCount] = useState(0);
+  const [myId, setMyId] = useState("");
   const socketRef = useRef(null);
 
   useEffect(() => {
     socketRef.current = io("http://localhost:3000");
+
     socketRef.current.on("connect", () => {
-      console.log("connected", socketRef.current.id);
+      setMyId(socketRef.current.id);
     });
     socketRef.current.on("playerScores", (playerScores) => {
       setAllScores(playerScores);
@@ -75,7 +77,13 @@ function App() {
                 <td>{score?.name}</td>
                 <td>{score?.score}</td>
                 <td>
-                  <button onClick={() => handleDelete(i)}>Delete</button>
+                  {score.id === myId ? (
+                    <button onClick={() => handleDelete(i)}>Delete</button>
+                  ) : (
+                    <span style={{ color: "gray", fontSize: "12px" }}>
+                      Read Only
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}

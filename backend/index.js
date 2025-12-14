@@ -20,7 +20,7 @@ io.on("connection", (socket) => {
   socket.emit("playerScores", playerScores);
 
   socket.on("scores", (scores) => {
-    playerScores.push({ ...scores });
+    playerScores.push({ ...scores, id: socket.id });
     io.emit("playerScores", playerScores);
   });
 
@@ -30,8 +30,12 @@ io.on("connection", (socket) => {
       index >= 0 &&
       index < playerScores.length
     ) {
-      playerScores.splice(index, 1);
-      io.emit("playerScores", playerScores);
+      const targetScore = playerScores[index];
+
+      if (targetScore.id === socket.id) {
+        playerScores.splice(index, 1);
+        io.emit("playerScores", playerScores);
+      }
     }
   });
 
