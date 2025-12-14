@@ -39,6 +39,10 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("typing", (data) => {
+    socket.broadcast.emit("displayTyping", data);
+  });
+
   socket.on("disconnect", () => {
     activeUsers--;
     io.emit("userCount", activeUsers);

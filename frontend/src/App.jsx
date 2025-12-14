@@ -8,7 +8,9 @@ function App() {
   const [allScores, setAllScores] = useState([]);
   const [onlineCount, setOnlineCount] = useState(0);
   const [myId, setMyId] = useState("");
+  const [typingText, setTypingText] = useState(" ");
   const socketRef = useRef(null);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     socketRef.current = io("http://localhost:3000");
@@ -24,6 +26,17 @@ function App() {
       setOnlineCount(count);
     });
 
+    socketRef.current.on("displayTyping", (name) => {
+      setTypingText(`${name || "Someone"} is typing`);
+
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      // 3. Set a new timer to hide the text after 2 seconds of silence
+      timeoutRef.current = setTimeout(() => {
+        setTypingText("");
+      }, 2000);
+    });
+
     return () => {
       socketRef.current.disconnect();
     };
@@ -32,6 +45,12 @@ function App() {
   const handleInput = (event) => {
     const { name, value } = event.target;
     setScores((prev) => ({ ...prev, [name]: value }));
+
+    if (socketRef.current) {
+      // We send the 'name' so others know WHO is typing.
+      // If name is empty, we send "Someone"
+      socketRef.current.emit("typing", scores.name);
+    }
   };
 
   const sendScores = () => {
@@ -48,6 +67,9 @@ function App() {
     <>
       <h1>Welcome to React Multi player dashboard</h1>
       <h3 style={{ color: "green" }}>Live Users: {onlineCount}</h3>
+      <p style={{ fontStyle: "italic", color: "gray", height: "20px" }}>
+        {typingText}
+      </p>
       <Input
         name="name"
         placeholder="Enter your Name"
